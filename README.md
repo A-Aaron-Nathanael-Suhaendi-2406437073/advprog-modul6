@@ -32,3 +32,11 @@ Format Response HTTP: Sebuah respons HTTP yang valid membutuhkan format tertentu
 - stream.write_all(): Digunakan untuk mengubah string response yang sudah disusun menjadi urutan bytes, lalu mengirimkannya kembali ke koneksi TCP (browser). unwrap() digunakan di sini untuk menghentikan program jika terjadi kegagalan saat pengiriman data.
 
 
+Commit 3 Reflection notes
+
+![Commit 3 screen capture](assets/images/commit3.png)
+
+Pada tahap ini, saya menambahkan logika untuk memvalidasi request yang masuk. Server sekarang memeriksa baris pertama dari HTTP request (request_line). Jika request adalah "GET / HTTP/1.1" (meminta halaman utama), server mengembalikan status 200 OK dan file hello.html. Jika tidak sesuai (misalnya meminta URL /bad), server mengembalikan status 404 NOT FOUND dan merender file 404.html.
+
+Terkait proses refactoring, awalnya blok if-else dibuat dengan menduplikasi baris kode untuk fs::read_to_string, format response, dan stream.write_all di setiap kondisinya. Refactoring dilakukan untuk menghindari pengulangan kode (DRY - Don't Repeat Yourself). Alih-alih menulis ulang seluruh proses pengiriman, blok if-else difokuskan hanya untuk mengembalikan dua buah nilai dalam bentuk tuple: (status_line, filename). Proses pembacaan file dan pengiriman respons kemudian cukup ditulis satu kali saja di bagian akhir fungsi, sehingga kode menjadi lebih bersih, ringkas, dan mudah dipelihara.
+
