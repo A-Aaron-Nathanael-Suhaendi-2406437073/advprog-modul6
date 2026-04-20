@@ -15,3 +15,20 @@ TcpStream dan BufReader: Parameter stream merepresentasikan koneksi yang terbuka
 Kesimpulannya, kode ini bertugas menangkap rentetan teks yang dikirimkan oleh browser, membacanya secara efisien hingga batas header HTTP selesai, dan menyimpannya ke dalam bentuk vektor (Array/List) agar mudah dikelola oleh program kita selanjutnya.
 
 
+
+Commit 2 Reflection notes
+
+![Commit 2 screen capture](assets/images/commit2.png)
+
+Pada tahap ini, server dikembangkan agar tidak hanya membaca request, tetapi juga merespons dengan mengirimkan sebuah file HTML. Berikut adalah hal baru yang dipelajari dari penambahan kode di handle_connection:
+
+fs::read_to_string("hello.html"): Fungsi dari modul file system (std::fs) ini digunakan untuk membaca seluruh isi file hello.html ke dalam bentuk String.
+
+Format Response HTTP: Sebuah respons HTTP yang valid membutuhkan format tertentu. Kode menggunakan makro format! untuk menyusun respons yang terdiri dari:
+- status_line (HTTP/1.1 200 OK) untuk memberitahu browser bahwa request berhasil.
+- Content-Length: Header wajib untuk memberitahu browser ukuran/panjang data yang dikirimkan.
+- Baris kosong (\r\n\r\n) sebagai pemisah antara header dan body.
+- contents: Isi dari file HTML itu sendiri.
+- stream.write_all(): Digunakan untuk mengubah string response yang sudah disusun menjadi urutan bytes, lalu mengirimkannya kembali ke koneksi TCP (browser). unwrap() digunakan di sini untuk menghentikan program jika terjadi kegagalan saat pengiriman data.
+
+
