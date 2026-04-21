@@ -64,3 +64,15 @@ Cara kerja ThreadPool di Rust ini melibatkan beberapa konsep:
 
 Dengan implementasi ini, ketika rute /sleep diakses, hanya satu worker yang akan tertidur. Tiga worker lainnya di dalam pool masih bebas dan siap menerima koneksi baru secara instan, memecahkan masalah bottleneck yang terjadi pada Milestone 4.
 
+
+Commit Bonus Reflection notes
+
+Pada bagian bonus ini, saya mengganti fungsi new dengan fungsi build pada pembuatan ThreadPool. Perubahan ini dilakukan untuk memperbaiki cara program menangani error (error handling).
+
+Berikut adalah perbandingan antara new dan build:
+
+Fungsi new: Sebelumnya, new menggunakan fungsi assert!(size > 0). Jika pengguna memasukkan nilai 0, assert! akan memicu panic!, yang menyebabkan program langsung crash tanpa memberi kesempatan bagi program untuk melakukan tindakan penyelamatan. Hal ini dianggap kurang sesuai standar untuk error yang bisa diprediksi.
+
+Fungsi build: Fungsi ini dirancang mengembalikan tipe data Result<ThreadPool, PoolCreationError>. Jika size yang dimasukkan adalah 0, fungsi tidak akan panik, melainkan mengembalikan nilai Err. Hal ini mendelegasikan tanggung jawab penanganan error kembali kepada pemanggil fungsi (dalam hal ini, main.rs). Di main.rs, kita bisa menggunakan unwrap_or_else untuk menangkap error tersebut, menampilkan pesan peringatan yang lebih ramah kepada pengguna, dan menghentikan program dengan menggunakan process::exit(1).
+
+Pola penggunaan Result ini membuat library atau struktur kode menjadi lebih aman, stabil, dan mudah dipelihara.
