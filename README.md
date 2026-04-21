@@ -40,3 +40,13 @@ Pada tahap ini, saya menambahkan logika untuk memvalidasi request yang masuk. Se
 
 Terkait proses refactoring, awalnya blok if-else dibuat dengan menduplikasi baris kode untuk fs::read_to_string, format response, dan stream.write_all di setiap kondisinya. Refactoring dilakukan untuk menghindari pengulangan kode (DRY - Don't Repeat Yourself). Alih-alih menulis ulang seluruh proses pengiriman, blok if-else difokuskan hanya untuk mengembalikan dua buah nilai dalam bentuk tuple: (status_line, filename). Proses pembacaan file dan pengiriman respons kemudian cukup ditulis satu kali saja di bagian akhir fungsi, sehingga kode menjadi lebih bersih, ringkas, dan mudah dipelihara.
 
+
+Commit 4 Reflection notes
+
+Pada tahap ini, saya menambahkan rute baru yaitu /sleep untuk mensimulasikan sebuah proses yang lambat. Ketika rute ini diakses, thread akan dihentikan sementara (sleep) selama 10 detik sebelum mengembalikan file HTML.
+
+Setelah itu, saya melakukan pengujian dengan membuka 2 tab browser. Tab pertama mengakses 127.0.0.1:7878/sleep, dan tak lama kemudian tab kedua mengakses 127.0.0.1:7878 (rute utama). Hasilnya, tab kedua terpaksa menunggu dan tidak langsung menampilkan halaman, melainkan ikut loading sampai proses sleep di tab pertama selesai.
+
+Hal ini membuktikan bahwa server yang dibuat saat ini masih berjalan secara sinkron pada satu thread (single-threaded). Artinya, server hanya mampu memproses satu koneksi dalam satu waktu. Ketika thread tersebut sedang sibuk menangani request yang berat atau lambat, koneksi lain yang masuk akan diblokir dan masuk ke dalam antrean. Arsitektur seperti ini tentu tidak efisien dan tidak siap untuk tahap produksi karena bisa membuat banyak pengguna menunggu lama (bottleneck).
+
+
