@@ -50,3 +50,17 @@ Setelah itu, saya melakukan pengujian dengan membuka 2 tab browser. Tab pertama 
 Hal ini membuktikan bahwa server yang dibuat saat ini masih berjalan secara sinkron pada satu thread (single-threaded). Artinya, server hanya mampu memproses satu koneksi dalam satu waktu. Ketika thread tersebut sedang sibuk menangani request yang berat atau lambat, koneksi lain yang masuk akan diblokir dan masuk ke dalam antrean. Arsitektur seperti ini tentu tidak efisien dan tidak siap untuk tahap produksi karena bisa membuat banyak pengguna menunggu lama (bottleneck).
 
 
+Commit 5 Reflection notes
+
+Pada tahap ini, arsitektur server diubah dari single-threaded menjadi multithreaded menggunakan ThreadPool.
+
+ThreadPool adalah sekumpulan thread yang sudah dijalankan (spawned) dan berada dalam posisi standby untuk menerima tugas. Alih-alih membuat thread baru setiap kali ada request (yang bisa berbahaya jika ada serangan DoS karena akan menghabiskan memori server), kita membatasi jumlah thread yang aktif, misalnya 4 thread.
+
+Cara kerja ThreadPool di Rust ini melibatkan beberapa konsep:
+
+- mpsc (Multiple Producer, Single Consumer): Digunakan sebagai channel komunikasi. Main thread berperan sebagai producer yang mengirimkan tugas (Job), dan kumpulan worker berperan sebagai consumer yang mengantre untuk mengambil tugas tersebut.
+
+- Arc dan Mutex: Karena channel receiver hanya bisa dimiliki oleh satu consumer, sedangkan kita punya banyak worker, kita harus menggunakan Arc (Atomic Reference Counted) agar receiver bisa di-share (dibagikan) ke banyak worker secara aman, dan Mutex (Mutual Exclusion) agar hanya ada satu worker yang mengambil satu Job dalam satu waktu.
+
+Dengan implementasi ini, ketika rute /sleep diakses, hanya satu worker yang akan tertidur. Tiga worker lainnya di dalam pool masih bebas dan siap menerima koneksi baru secara instan, memecahkan masalah bottleneck yang terjadi pada Milestone 4.
+
